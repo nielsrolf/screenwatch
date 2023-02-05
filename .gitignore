@@ -1,3 +1,11 @@
 screenshots
 screenwatch.egg-info
 screenwatch/__pycache__/
+**/*.csv
+**/*.json
+.DS_Store
+**/*.png
+**/*.jpg
+**/*.gif
+**/*.pyc
+**/*.mp4

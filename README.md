@@ -1,9 +1,12 @@
-# screenwatch
-Takes a screenshot once a minute on mac.
+# Productivity
+Ever noticed how much more efficient you are while someone is watching? #screenwatch is watching now.
 
 ## Install
 `pip install git+git://github.com/nielsrolf/screenwatch`
 
-## Usage
-`screenwatch <path/to/put/screenshots> # starts taking screenshots
-^C # stops taking screenshots`
+## Commands
+```
+watchme config
+watchme start <project> [<task>]
+watchme stop
+```
