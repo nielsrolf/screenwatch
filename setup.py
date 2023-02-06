@@ -1,7 +1,7 @@
 import os
 import sys
-import setuptools
 
+import setuptools
 
 setuptools.setup(
     name="screenwatch",

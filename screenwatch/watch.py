@@ -1,9 +1,10 @@
-import os
-import time
 import datetime as dt
-from screenwatch.configure import settings
-from screenwatch.cli import get_work_logs
+import os
 from glob import glob
+import subprocess
+import time
+
+from screenwatch.configure import settings, get_work_logs
 
 
 def system(cmd):
@@ -20,11 +21,11 @@ def main():
     idx = len(glob(f"{target_dir}/*.png"))
     screen_1 = f"{target_dir}/{idx:05d}-screen1.png"
     screen_2 = f"{target_dir}/{idx:05d}-screen2.png"
-    system(f"screencapture -D 1 {screen_1}")
-    system(f"screencapture -D 2 {screen_2}")
+    system(f"/usr/sbin/screencapture -D 1 {screen_1}")
+    system(f"/usr/sbin/screencapture -D 2 {screen_2}")
+    time.sleep(settings.interval * 60)
+    subprocess.Popen([settings.python, __file__])
 
 
 if __name__ == "__main__":
-    for _ in range(10):
-        main()
-        time.sleep(1)
+    main()

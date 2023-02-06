@@ -1,7 +1,6 @@
 import os
-import time
-import datetime as dt
-import click
+
+import pandas as pd
 from pydantic import BaseModel
 
 
@@ -13,7 +12,7 @@ class Settings(BaseModel):
     project: str = None
     task: str = None
     work_logs: str = os.path.join(home_dir, "logs.csv")
-
+    python: str = "python"
 
     def save(self):
         with open(os.path.join(self.home_dir, "config.json"), "w") as f:
@@ -33,21 +32,9 @@ except FileNotFoundError:
 os.makedirs(settings.target_dir, exist_ok=True)
 
 
-@click.command()
-@click.argument("home_dir", default=settings.home_dir)
-@click.argument("target_dir", default=settings.target_dir)
-@click.argument("interval", default=settings.interval)
-def set_config(
-    home_dir=settings.home_dir,
-    target_dir=settings.target_dir,
-    interval: int = settings.interval,
-):
-    """Set config.json"""
-    settings = Settings(
-        home_dir=home_dir,
-        target_dir=target_dir,
-        interval=interval,
-        project=settings.project,
-        task=settings.task,
-    )
-    settings.save()
+def get_work_logs():
+    try:
+        df = pd.read_csv(settings.work_logs)
+    except FileNotFoundError:
+        df = pd.DataFrame(columns=["project", "task", "start", "end"])
+    return df

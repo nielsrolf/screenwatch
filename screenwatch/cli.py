@@ -1,15 +1,12 @@
-import click
-from screenwatch.configure import settings, Settings
-import pandas as pd
 import os
+import subprocess
 
+import click
+import pandas as pd
 
-def get_work_logs():
-    try:
-        df = pd.read_csv(settings.work_logs)
-    except FileNotFoundError:
-        df = pd.DataFrame(columns=["project", "task", "start", "end"])
-    return df
+from screenwatch.configure import Settings, settings, get_work_logs
+from screenwatch.watch import main as watch
+
 
 
 @click.command("start")
@@ -24,18 +21,34 @@ def startwork(project: str, task: str = None):
             "project": project,
             "task": task,
             "start": pd.Timestamp.now(),
-        }, ignore_index=True
+        },
+        ignore_index=True,
     )
     df.to_csv(settings.work_logs, index=False)
     settings.project = project
     settings.task = task
     settings.save()
     click.echo(f"Started work on {project} {task}")
+    # In the background, run the watch script
+    watch()
+
+
+    
 
 
 @click.command("stop")
 def stopwork():
     _stopwork()
+
+
+@click.command("what")
+def what():
+    if settings.project is None:
+        # print nice message with cool smiley
+        click.echo("You are not working on anything right now")
+        return
+    click.echo(f"You are working on \n{settings.project}\n    {settings.task}")
+    
 
 
 def create_video():
@@ -65,9 +78,9 @@ def _stopwork():
 
 
 @click.command("config")
-@click.argument("home_dir", default=settings.home_dir)
-@click.argument("target_dir", default=settings.target_dir)
-@click.argument("interval", default=settings.interval)
+@click.option("--home_dir", default=settings.home_dir)
+@click.option("--target_dir", default=settings.target_dir)
+@click.option("--interval", default=settings.interval)
 def set_config(
     home_dir=settings.home_dir,
     target_dir=settings.target_dir,
@@ -80,6 +93,7 @@ def set_config(
         interval=interval,
         project=settings.project,
         task=settings.task,
+        python=subprocess.check_output(["which", "python"]).decode().strip()
     ).save()
 
 
@@ -91,3 +105,4 @@ def cli():
 cli.add_command(startwork)
 cli.add_command(stopwork)
 cli.add_command(set_config)
+cli.add_command(what)
