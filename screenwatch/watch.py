@@ -8,8 +8,9 @@ from screenwatch.configure import settings, get_work_logs
 
 
 def system(cmd):
-    print(cmd)
-    os.system(cmd)
+    """Run a command in the shell, surpress outputs"""
+    with open(os.devnull, "w") as f:
+        subprocess.Popen(cmd, shell=True, stdout=f, stderr=f)
 
 
 def main():

@@ -4,7 +4,7 @@ import subprocess
 import click
 import pandas as pd
 
-from screenwatch.configure import Settings, settings, get_work_logs
+from screenwatch.configure import Settings, settings, get_work_logs, get_todos
 from screenwatch.watch import main as watch
 
 
@@ -33,12 +33,78 @@ def startwork(project: str, task: str = None):
     watch()
 
 
-    
-
 
 @click.command("stop")
 def stopwork():
     _stopwork()
+
+
+# Command to add todos for the day and track how many percent get done
+@click.command("today")
+@click.argument("tasks", nargs=-1)
+def add_todos_for_today(tasks):
+    deadline = pd.Timestamp.now().replace(hour=23, minute=59, second=59)
+    for task in tasks:
+        add_task(task, deadline=deadline)
+    show_todos(deadline)
+
+
+def add_task(task, deadline):
+    df = get_todos()
+    df = df.append(
+        {
+            "task": task,
+            "registered": pd.Timestamp.now(),
+            "deadline": deadline,
+            "done": None,
+        },
+        ignore_index=True,
+    )
+    df.to_csv(settings.todos, index=False)
+    click.echo(f"Added task: {task}")
+
+
+@click.command("todo")
+def todo():
+    """Show todo tasks"""
+    # tomorrow 0:00
+    deadline = pd.Timestamp.now().replace(hour=23, minute=59, second=59) + pd.Timedelta(minutes=1)
+    show_todos(deadline)
+
+
+def show_todos(deadline):
+    df = get_todos().sort_values("deadline")
+    # Overdue, unfinished tasks
+    overdue = df[df.deadline < pd.Timestamp.now()]
+    overdue = overdue[overdue.done.isnull()]
+    click.echo(f"Overdue tasks")
+    for _, row in overdue.iterrows():
+        click.echo(f"    {row.task}")
+    click.echo("-"*80)
+    # todo tasks until deadline
+    todo = df[df.deadline <= deadline]
+    todo = todo[todo.done.isnull()]
+    click.echo(f"Todo tasks until {deadline}")
+    for _, row in todo.iterrows():
+        click.echo(f"    {row.task}")
+    click.echo("-"*80)
+    # done tasks with deadline > now
+    done = df[df.deadline > pd.Timestamp.now()]
+    done = done[done.done.notnull()]
+    click.echo(f"Done tasks")
+    for _, row in done.iterrows():
+        click.echo(f"    {row.task}")
+    click.echo("-"*80)
+
+
+@click.command("done")
+@click.argument("tasks", nargs=-1)
+def mark_tasks_as_done(tasks):
+    df = get_todos()
+    for task in tasks:
+        df.loc[df.task == task, "done"] = pd.Timestamp.now()
+    df.to_csv(settings.todos, index=False)
+    click.echo(f"Marked tasks as done: {tasks}")
 
 
 @click.command("what")
@@ -106,3 +172,6 @@ cli.add_command(startwork)
 cli.add_command(stopwork)
 cli.add_command(set_config)
 cli.add_command(what)
+cli.add_command(add_todos_for_today)
+cli.add_command(mark_tasks_as_done)
+cli.add_command(todo)

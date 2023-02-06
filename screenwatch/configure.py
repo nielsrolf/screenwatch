@@ -13,6 +13,7 @@ class Settings(BaseModel):
     task: str = None
     work_logs: str = os.path.join(home_dir, "logs.csv")
     python: str = "python"
+    todos: str = os.path.join(home_dir, "todos.csv")
 
     def save(self):
         with open(os.path.join(self.home_dir, "config.json"), "w") as f:
@@ -37,4 +38,20 @@ def get_work_logs():
         df = pd.read_csv(settings.work_logs)
     except FileNotFoundError:
         df = pd.DataFrame(columns=["project", "task", "start", "end"])
+    # cast to datetime
+    df["start"] = pd.to_datetime(df["start"])
+    df["end"] = pd.to_datetime(df["end"])
+    return df
+
+
+
+def get_todos():
+    try:
+        df = pd.read_csv(settings.todos)
+    except FileNotFoundError:
+        df = pd.DataFrame(columns=["task", "registered", "deadline", "done"])
+    # cast to datetime
+    df["registered"] = pd.to_datetime(df["registered"])
+    df["deadline"] = pd.to_datetime(df["deadline"])
+    df["done"] = pd.to_datetime(df["done"])
     return df
