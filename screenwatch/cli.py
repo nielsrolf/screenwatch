@@ -180,7 +180,7 @@ def what():
         # print nice message with cool smiley
         click.echo("You are not working on anything right now")
         return
-    click.echo(f"You are working on \n{settings.project}\n    {settings.task}")
+    click.echo(f"You are working on \n{settings.project}\n    {settings.task or ''}")
 
 
 def create_video():

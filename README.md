@@ -32,7 +32,5 @@ watchme config
 
 
 ## Todo
-- watchme cancel
-- watchme plan tuesday project/task
 - CLIP analyze contents
 - add webcam pictures
