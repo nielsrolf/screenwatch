@@ -4,7 +4,10 @@ Ever noticed how much more efficient you are while someone is watching? #screenw
 [![motivation](img/motivation.png)](https://twitter.com/sberens1/status/1621977693620432896)
 
 Example:
-![example](https://github.com/nielsrolf/screenwatch/raw/main/img/screen1.mp4)
+<video width="320" height="240" controls>
+  <source src="img/screen1.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## Install
 ```
