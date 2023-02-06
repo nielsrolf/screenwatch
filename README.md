@@ -3,6 +3,9 @@ Ever noticed how much more efficient you are while someone is watching? #screenw
 
 [![motivation](img/motivation.png)](https://twitter.com/sberens1/status/1621977693620432896)
 
+Example:
+![example](img/screen1.mp4)
+
 ## Install
 ```
 
