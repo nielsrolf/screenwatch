@@ -4,7 +4,9 @@ Ever noticed how much more efficient you are while someone is watching? #screenw
 [![motivation](img/motivation.png)](https://twitter.com/sberens1/status/1621977693620432896)
 
 Example:
-![example](https://github.com/nielsrolf/screenwatch/raw/main/img/screen1.mp4)
+
+https://user-images.githubusercontent.com/12168515/216963257-a073da2f-5758-48d3-af13-af76d3c6f4f5.mp4
+
 
 ## Install
 ```
