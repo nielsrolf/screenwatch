@@ -1,12 +1,13 @@
+import calendar
+import datetime as dt
 import os
 import subprocess
 
 import click
 import pandas as pd
 
-from screenwatch.configure import Settings, settings, get_work_logs, get_todos
+from screenwatch.configure import Settings, get_todos, get_work_logs, settings
 from screenwatch.watch import main as watch
-
 
 
 @click.command("start")
@@ -31,7 +32,6 @@ def startwork(project: str, task: str = None):
     click.echo(f"Started work on {project} {task}")
     # In the background, run the watch script
     watch()
-
 
 
 @click.command("stop")
@@ -68,8 +68,22 @@ def add_task(task, deadline):
 def todo():
     """Show todo tasks"""
     # tomorrow 0:00
-    deadline = pd.Timestamp.now().replace(hour=23, minute=59, second=59) + pd.Timedelta(minutes=1)
+    deadline = pd.Timestamp.now().replace(hour=23, minute=59, second=59) + pd.Timedelta(
+        minutes=1
+    )
     show_todos(deadline)
+
+
+def get_human_readable_date(date):
+    # get deadline in human readable format: "today", "tomorrow", "Monday", etc - after one week show the date without time
+    if date.date() == pd.Timestamp.now().date():
+        return "today"
+    elif date.date() == (pd.Timestamp.now() + pd.Timedelta(days=1)).date():
+        return "tomorrow"
+    elif date.date() < (pd.Timestamp.now() + pd.Timedelta(days=7)).date():
+        return calendar.day_name[date.weekday()]
+    else:
+        return date.date()
 
 
 def show_todos(deadline):
@@ -80,21 +94,22 @@ def show_todos(deadline):
     click.echo(f"Overdue tasks")
     for _, row in overdue.iterrows():
         click.echo(f"    {row.task}")
-    click.echo("-"*80)
+    click.echo("-" * 80)
     # todo tasks until deadline
     todo = df[df.deadline <= deadline]
     todo = todo[todo.done.isnull()]
-    click.echo(f"Todo tasks until {deadline}")
+
+    click.echo(f"Todo tasks until {get_human_readable_date(deadline)}")
     for _, row in todo.iterrows():
         click.echo(f"    {row.task}")
-    click.echo("-"*80)
+    click.echo("-" * 80)
     # done tasks with deadline > now
     done = df[df.deadline > pd.Timestamp.now()]
     done = done[done.done.notnull()]
     click.echo(f"Done tasks")
     for _, row in done.iterrows():
         click.echo(f"    {row.task}")
-    click.echo("-"*80)
+    click.echo("-" * 80)
 
 
 @click.command("done")
@@ -107,6 +122,58 @@ def mark_tasks_as_done(tasks):
     click.echo(f"Marked tasks as done: {tasks}")
 
 
+@click.command("cancel")
+@click.argument("tasks", nargs=-1)
+def cancel_tasks(tasks):
+    df = get_todos()
+    for task in tasks:
+        df = df[df.task != task]
+    df.to_csv(settings.todos, index=False)
+    click.echo(f"Canceled tasks: {tasks}")
+
+
+def get_next_date_of(target_weekday):
+    today = dt.datetime.now().date()
+    weekday = calendar.day_name[today.weekday()].lower()
+
+    day_names = {name.lower(): i for i, name in enumerate(calendar.day_name)}
+    target_weekday_index = day_names[target_weekday]
+
+    if weekday == target_weekday:
+        next_target_weekday = today + dt.timedelta(days=7)
+    else:
+        days_to_next_target_weekday = (target_weekday_index - today.weekday()) % 7
+        next_target_weekday = today + dt.timedelta(days=days_to_next_target_weekday)
+    # make sure the time is 23:59:59
+    next_target_weekday = pd.Timestamp(next_target_weekday).replace(
+        hour=23, minute=59, second=59
+    )
+    return next_target_weekday
+
+
+@click.command("plan")
+@click.argument("day", type=str)
+@click.argument("tasks", nargs=-1)
+def plan_tasks(day, tasks):
+    """Plan tasks for a specific day. Day can be a date or a weekday."""
+    if day[:3] in ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]:
+        deadline = get_next_date_of(day)
+        for task in tasks:
+            add_task(task, deadline=deadline)
+    elif day == "tomorrow":
+        deadline = pd.Timestamp.now().replace(
+            hour=23, minute=59, second=59
+        ) + pd.Timedelta(hours=24)
+        for task in tasks:
+            add_task(task, deadline=deadline)
+    else:
+        # parse the day as a date
+        deadline = pd.Timestamp(day)
+        for task in tasks:
+            add_task(task, deadline=deadline)
+    show_todos(deadline)
+
+
 @click.command("what")
 def what():
     if settings.project is None:
@@ -114,7 +181,6 @@ def what():
         click.echo("You are not working on anything right now")
         return
     click.echo(f"You are working on \n{settings.project}\n    {settings.task}")
-    
 
 
 def create_video():
@@ -159,7 +225,7 @@ def set_config(
         interval=interval,
         project=settings.project,
         task=settings.task,
-        python=subprocess.check_output(["which", "python"]).decode().strip()
+        python=subprocess.check_output(["which", "python"]).decode().strip(),
     ).save()
 
 
@@ -175,3 +241,5 @@ cli.add_command(what)
 cli.add_command(add_todos_for_today)
 cli.add_command(mark_tasks_as_done)
 cli.add_command(todo)
+cli.add_command(cancel_tasks)
+cli.add_command(plan_tasks)

@@ -44,7 +44,6 @@ def get_work_logs():
     return df
 
 
-
 def get_todos():
     try:
         df = pd.read_csv(settings.todos)

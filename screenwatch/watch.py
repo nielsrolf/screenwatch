@@ -1,10 +1,10 @@
 import datetime as dt
 import os
-from glob import glob
 import subprocess
 import time
+from glob import glob
 
-from screenwatch.configure import settings, get_work_logs
+from screenwatch.configure import get_work_logs, settings
 
 
 def system(cmd):
