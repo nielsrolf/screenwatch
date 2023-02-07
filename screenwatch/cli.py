@@ -190,7 +190,7 @@ def create_video():
     target_dir = os.path.join(settings.target_dir, settings.project, str(session))
     # use ffmpeg to create one video per screen
     for screen in [1, 2]:
-        cmd = f"ffmpeg -framerate 1 -pattern_type glob -i '{target_dir}/*-screen{screen}.png' -c:v libx264 -r 30 -pix_fmt yuv420p {target_dir}/screen{screen}.mp4"
+        cmd = f"ffmpeg -framerate 4 -pattern_type glob -i '{target_dir}/*-screen{screen}.png' -c:v libx264 -r 30 -pix_fmt yuv420p {target_dir}/screen{screen}.mp4"
         print(cmd)
         os.system(cmd)
 
